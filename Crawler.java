@@ -8,15 +8,32 @@ import java.util.regex.*;
 
 
 public class Crawler {
-	public static ArrayList<String> localLinkList = new ArrayList<String>();
-	public static ArrayList<URI> urlList = new ArrayList<URI>();
+	public ArrayList<URI> urlList = new ArrayList<URI>();
+	private ArrayList<String> localLinkList = new ArrayList<String>();
+	private String host;
 	
-	private static int MAX_LEVELS = 2;
-	
+	Crawler(String host){
+		this.host = host;
+		addNewLink("/");
+	}
 
-	public static void connect(String url) {
+	private void addNewLink(String link){
+		//System.out.print(link);
+		urlList.add(URI.create("http://" + host + link));
+		if(!localLinkList.isEmpty()){
+			localLinkList.add(localLinkList.size()-1,link);
+		}
+		else {
+			localLinkList.add(link);
+		}
+	}
+
+	public ArrayList<URI> getUrlList(){
+		return urlList;
+	}
+	public void connect(String url) {
 		synchronized(localLinkList) {
-			// Specify the Link's pattern
+			// Specify the Link's patternn with Regex
 			Pattern pattern = Pattern.compile("href=\"([^\"]*)\"", Pattern.CASE_INSENSITIVE);
 			// Search for the match Link in the string url
 			Matcher matcher = pattern.matcher(url);
@@ -24,52 +41,29 @@ public class Crawler {
 			while(matcher.find()) {
 				// Store the found link
 				String value = String.valueOf(matcher.group(1));
-				// System.out.println("Found value: " + value);
-				if (localLinkList.size() == 0) {
-					// Add the link the visitedLink dictionary
-					//visitedLink.put(key, value);
-					//key++;
-					System.out.println("value: " + value);
 
-					// Add the link to localLinkList array
-					localLinkList.add(value);
-					
-				}
-				else {
-					// Create a counter
-					//int count = 0;
-					boolean isVisited = false;
-
-					// For each key in visietedLink dictionary
-					for (String link : localLinkList) {
-						
-						if(link.equals(value)) {
-							isVisited = true;
-							break;
-						}
-						
-					}
-					
-					if(!isVisited) {
-						localLinkList.add(value);
-						System.out.println("value: " + value);
-						
-					}
+				if(!localLinkList.contains(value)){
+					addNewLink(value);
 				}
 			}
 		}
 	}
+
+	public void printLocalLink(){
+		System.out.println("localLinkList:" + localLinkList);
+	}
 	public static void main(String[] args) {
-		ArrayList<URI> urlList = new ArrayList<URI>(); 
+		// deep level of crawling
+		final int MAX_LEVELS = 2;
+		final String HOST = "127.0.0.1";
 
-		urlList.add(URI.create("http://" + args[0]));
-
-		System.out.println(urlList);
+		Crawler crawler = new Crawler(HOST);
+		crawler.printLocalLink();
 
 		int currentLevel = 0;
 
 		while (currentLevel < MAX_LEVELS) {
-			List<HttpRequest> requests = urlList
+			List<HttpRequest> requests = crawler.getUrlList()
 				.stream()
 				.map(url -> HttpRequest.newBuilder(url))
 				.map(reqBuilder -> reqBuilder.build())
@@ -81,23 +75,12 @@ public class Crawler {
 				.map(request -> client
 					.sendAsync(request, HttpResponse.BodyHandlers.ofString())
 					.thenApply(HttpResponse::body)
-					.thenAccept(Crawler::connect))
+					.thenAccept(crawler::connect))
 				.toArray(CompletableFuture<?>[]::new);
 
 			CompletableFuture.allOf(asyncs).join();
 
-			urlList.clear();
-
-			
-
-			for (int i = 0; j<localLinkList.size(); i++) {
-				// System.out.println("http://" + args[0] + localLinkList.get(j));
-				urlList.add(URI.create("http://" + args[0] + localLinkList.get(i)));
-			}
-
-			// Print the total URL
-			System.out.println("localLinkList:" + urlList);
-			// System.out.println("visitedURL:" + localLinkList);
+			crawler.printLocalLink();
 			currentLevel++;
 		}
 	}
