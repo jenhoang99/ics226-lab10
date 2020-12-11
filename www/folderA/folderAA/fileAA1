@@ -1,0 +1,8 @@
+<html>
+<body>
+<a href="/folderA/fileA1">A/A1</a>
+<a HREF="/folderB/fileB1">B/B1</a>
+<a HREF="/folderB/fileB2">B/B2</a>
+<a HREF="/folderA/fileA2">A/A2</a>
+</body>
+</html>
