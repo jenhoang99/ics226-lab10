@@ -42,7 +42,7 @@ public class Crawler {
 	* Given a url of a webpage find all the links on this webpage that matches to the defined Regex
 	* If the link was not visited, add the link to the localLinkList and urlList by calling addNewLink method
 	* @param url String of valid url whose request is accepted
-	* @note the code is forced to be synchronous when add the path to localLinkList and urlList
+	* @note when add the path to localLinkList and urlList, the code is forced to be synchronous 
 	*	to avoid multi-threads access these lists at the same time
 	*/
 	public void connect(String url) {
@@ -75,10 +75,11 @@ public class Crawler {
 	/** 
 	* The main flow of Crawler program
 	* 	Create a Crawler object
-	*	Print the current LocalLinkList
-	*	Create a list of request according to current urlList of crawler
-	* 	Clear urlList to minimize visit the url again
-	*	Send request to website, get the response and pass result to crawler.accept() method
+	*	Print the current localLinkList
+	*	Start a loop upto a deep level of crawling MAX_LEVELS
+	*	Create a list of requests according to current urlList of crawler
+	* 	Clear urlList to minimize access visited urls again
+	*	Send request to website, get the response and pass the result to crawler.accept() method
 	* 	Print the current value of localLinkList on the terminal
 	* @note Exceptions are captured and printed on the terminal, the program will then be terminated
 	*/
